@@ -1,1 +1,40 @@
+<html>
+    <title>
+        RC4 Encryption + Decryption
+    </title>
+    <head>
+        <link rel="stylesheet" href="styles.css">
+        <link  rel='stylesheet' href='https://fonts.googleapis.com/css?family=Atkinson Hyperlegible Mono'>
+    </head>
+    <body>
+        
+        <div class = "dGlow"></div>
+        <div class = "dMainbox">
+            <div class = "dLeft">
+                <label class = "labelCtPt">Plaintext</label>
+                <textarea type="text" class="inpArea" id="inpLeft" placeholder="Enter text here..."></textarea>
+                <textarea type="text" class="inpArea" id="inpLeftHex"></textarea>
 
+         </div>
+            <div class = "dMiddle">
+                <div class = "dKey">
+                <label id="labelKey"> KEY </label>
+                <textarea type="text" id="txtKey" placeholder = "Enter key here..."></textarea>
+                </div>
+                <button id="butEncrypt"> ENCRYPT </button>
+                <button id="butDecrypt"> DECRYPT </button>
+                <label id = "labelKeyStream">Keystream</label>
+                <textarea id="txtKeyStream" placeholder = "Keystream generates here..."></textarea>
+
+        </div>
+            <div class = "dRight">
+                <label class = "labelCtPt">Ciphertext</label>
+                <textarea type="text" class="inpArea" id="inpRight" placeholder="Enter text here..."></textarea>
+                <textarea type="text" class="inpArea" id="inpRightHex"></textarea>
+         </div>
+          
+</div>
+    
+    <script src="script.js"></script>
+    </body>
+</html>
