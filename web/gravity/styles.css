@@ -1,0 +1,23 @@
+#dSquare{
+    height:20px;
+    width: 20px;
+    position:absolute;
+    background-color: blue;
+    left:40px;
+    top:50px;
+    right:auto;
+    bottom:auto;
+    /* border-radius:50%; */
+    
+}
+
+#dBoundingBox {
+    border:1px solid red;
+    width:500px;
+    height:300px;
+    position:absolute;
+    top:40px;
+    left:10px;
+    right: auto;
+    bottom: auto;
+}
