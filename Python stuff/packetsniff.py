@@ -29,14 +29,14 @@ while counter != 0:
     DSCPandECN = sepped[1]
     # print(sepped)
     if DSCPandECN != "00":
-        split_that_shit = f'{int(DSCPandECN,16):<b}'
-        if len(split_that_shit) >= 6:
-            DSCP = split_that_shit[0:6]
+        split_it = f'{int(DSCPandECN,16):<b}'
+        if len(split_it) >= 6:
+            DSCP = split_it[0:6]
             DSCP = int(DSCP, 2)
-            ECN = split_that_shit[6:8]
+            ECN = split_it[6:8]
             ECN = int(ECN, 2)
         else:
-                DSCP = int(split_that_shit, 2)
+                DSCP = int(split_it, 2)
                 ECN = "none"
     else:
         DSCP = "none"
@@ -86,5 +86,6 @@ while counter != 0:
     pog3 = [destipbin[x:x+8] for x in range(0,len(destipbin),8)]
     pog4 = [str(int(pog3[x],2)) for x in range(0, len(pog3))]
     destip='.'.join(pog4)
+
 
     print(f"Version= {version}\nIHL= {IHL}\nDSCP= {DSCP}\nECN= {ECN}\nlength= {length}\nID= {ID}\nfragment flags= {flags}\nfragment= {fragment}\nttl= {ttl}\nprotocol= {protocol}\nheader_check= {header_check}\nsourceip= {sourceip}\ndestip= {destip}")
