@@ -10,7 +10,7 @@
   * **[linearMatrix.c](https://github.com/sublime-elephant/projects/blob/main/C%20stuff/linearMatrix.c)** is a C program that employs algorithms to solve sets of linear equations using the Gauss-Jordan row reduction method. It does it quickly and efficiently. I set a challenge for myself to rely on pointers where I could. The resulting code is quite unreadable and I'm proud of it. ChatGPT hates this guy.
   * **[memory.c](https://github.com/sublime-elephant/projects/blob/main/C%20stuff/memory.c)** is a quite involved project that queries and interrogates process memory on-demand. It identifies the process you want to interrogate and does all the memory allocation, query, examination and other operations required to present you with a human-readable layout of program memory. It has functionality to search for text-strings, too.
   * **[photocat.c](https://github.com/sublime-elephant/projects/blob/main/C%20stuff/photocat.c)** is like hoodirony.c, but a more lowkey version that only plays funny sounds and flashes a picture of a cat on the screen.
-  * **[weather.c](https://github.com/sublime-elephant/projects/blob/main/C%20stuff/weather.c)** a complete feverdream of old code that I have since graduated from, but this was a project that attempted to web-scrape the weather data from Australia's Bureau of Meteorology to be aggregated in a database for statistical analysis.
+  * **[weather.c](https://github.com/sublime-elephant/projects/blob/main/C%20stuff/weather.c)** An old project I used to web-scrape the weather data from Australia's Bureau of Meteorology to be aggregated in a database for statistical analysis.
 
 
 
