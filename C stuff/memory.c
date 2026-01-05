@@ -389,7 +389,7 @@ int main() {
 	}*/
 
 	/*int j = 1;
-	char a[] = "Arlabunas! <3\0";
+	char a[] = "teststring";
 	int* p = &j;
 	char* b = &j;
 	printf("j is %i, at %p, same thing:%p, dereferenced: %d\nchar a is at: %p\n", j, &j, p, *p, &a);
@@ -637,4 +637,5 @@ int main() {
 	else { printf("success\n"); }
 
 	return 0;
+
 }
