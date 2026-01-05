@@ -13,7 +13,7 @@ void EnumerateProcesses();
 DWORD processIdentifiers[1024];
 DWORD hijackpID;
 HANDLE HijackHandle;
-WCHAR* badDLL = L"C:\\Users\\Ronan\\Desktop\\web projects\\HardStuff\\EXEBLIGHT\\badDLL.dll";
+WCHAR* badDLL = L"C:\\Users\\Mike\\Desktop\\web projects\\Stuff\\badDLL.dll";
 
 int main (int argc, char *argv[]) {
     //We need to 
@@ -143,4 +143,5 @@ void EnumerateProcesses () {
             swprintf_s(buf, 50, L"Error: %lu", err);
             MessageBoxW(NULL, buf, NULL, MB_OK);
         }
+
     }
