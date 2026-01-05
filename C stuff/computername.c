@@ -6,7 +6,7 @@
 
 __declspec(dllexport) int ComputerName();
 
-// Hi Ron from the future. This was a project to explore DLLs and maybe I 
+//This was a project to explore DLLs and maybe I 
 //eventually even got to DLL hijacking.
 // This commmand line utility is cracked for finding out what functions
 // a DLL exports. I was able to use it to investigate an export issue.
@@ -23,5 +23,6 @@ int ComputerName() {
    }
    printf("Computer name: %s\n", buf);
    return 0;
+
 
 }
