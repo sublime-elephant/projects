@@ -1,6 +1,6 @@
 
 
-* "C stuff" features my projects I've done in the C programming language. Everything you see is in-house C; I never use external libraries.
+* "C stuff" features my projects I've done in the C programming language. Everything you see is in-house C; I never use external libraries, with the exception of the WINAPI. Other than that every single aspect of a program is done by me and me alone.
   * **[LoadDLL.c](https://github.com/sublime-elephant/projects/blob/main/C%20stuff/LoadDLL.c)**, **[badDLL.c](https://github.com/sublime-elephant/projects/blob/main/C%20stuff/badDLL.c)**, **[computername.c](https://github.com/sublime-elephant/projects/blob/main/C%20stuff/computername.c)**, and **[hijacker.c](https://github.com/sublime-elephant/projects/blob/main/C%20stuff/hijacker.c)** are my forays into DLL Injection.
     
   * **[hoodirony.c](https://github.com/sublime-elephant/projects/blob/main/C%20stuff/hoodirony.c)** is a prank program I made that plays audio and video randomly throughout the day. Ironically, it has been one of my most involved projects, since I was targetting an old platform, Windows Embedded Standard 7, and thus using hopelessly archaic technologies like DirectShow, and ASF multimedia containers and WMA/WMV2 codecs. 
