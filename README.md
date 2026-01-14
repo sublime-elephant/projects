@@ -1,4 +1,4 @@
-# Welcome to my github.
+
 
 * "C stuff" features my projects I've done in the C programming language
   * **[LoadDLL.c](https://github.com/sublime-elephant/projects/blob/main/C%20stuff/LoadDLL.c)**
