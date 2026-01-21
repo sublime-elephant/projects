@@ -203,7 +203,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 				fprintf(filepointer, "Patch 3: %s\n", result ? "SUCCESS" : "FAILED");
 				break;
 			case 3:
-				result = PlaySound(MAKEINTRESOURCE(IDR_FART), hInstance, SND_RESOURCE);
+				result = PlaySound(MAKEINTRESOURCE(IDR_WAV), hInstance, SND_RESOURCE);
 				fprintf(filepointer, "Patch 4: %s\n", result ? "SUCCESS" : "FAILED");
 				break;
 			case 4:
@@ -224,3 +224,4 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	}
 	return DefWindowProc(hwnd, message, wParam, lParam);
 }
+
