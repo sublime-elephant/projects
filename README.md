@@ -1,13 +1,13 @@
 **Current project showcase: PNG image encryption visualisation!**
 
-<img width="2048" height="1152" alt="cyberscramble" src="https://github.com/user-attachments/assets/cc18f93b-6afd-47e3-aecf-7dcacbfc47cc" />
+<img width="2048" height="1079" alt="cyberscramble" src="https://github.com/user-attachments/assets/d6461c76-ee75-44a5-9331-9da7fe41a2ce" />
+
 
 <img width="2048" height="1152" alt="cyber" src="https://github.com/user-attachments/assets/4938ade0-b6c3-4f1e-9d8b-7cb4aa8d3a1e" />
 
+## **Viewable at: [pngScrambler.c](https://github.com/sublime-elephant/projects/blob/main/C%20stuff/pngScrambler.c).**
 
-
-
-
+<br><br><br>
 
 
 * "C stuff" features my projects I've done in the C programming language. Everything you see is in-house C; I never use external libraries, with the exception of the WINAPI. Other than that every single aspect of a program is done by me and me alone.
