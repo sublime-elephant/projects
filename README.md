@@ -1,4 +1,4 @@
-**Current project showcase: PNG image encryption visualisation!**
+**Current project showcase: PNG image encryption with RSA, XOR, ChaCha!**
 
 <img width="2048" height="1079" alt="cyberscramble" src="https://github.com/user-attachments/assets/d6461c76-ee75-44a5-9331-9da7fe41a2ce" />
 
