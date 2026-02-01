@@ -32,6 +32,7 @@ int AddRoundKey(uint8_t state[4][4], int round, uint32_t w[44]);
 int KeyExpansion(uint8_t* key_in, uint32_t w[44]);
 int ShiftRows();
 int MixColumns();
+uint8_t xtimes(uint8_t b);
 
 
 
@@ -47,32 +48,43 @@ int AES128(uint8_t** buffer_in, uint8_t** buffer_out, int size, uint8_t key[16])
     InitSbox();
     KeyExpansion(key, w);
 
-    // expand and pad both bufs with 0x00 to a multiple of 16
     int q = 0;
-    // printf("size is %lu\n", size);
-    uint8_t* tmp;
-    uint8_t* tmp2;
-    q = 16-(size % 16);
-    tmp=malloc(size + q);
-    tmp2 =malloc(size+q);
-    memset(tmp+size, 0, q);
-    memset(tmp2+size, 0 , q);
-    memcpy(tmp, *buffer_in, size);
-    memcpy(tmp2, *buffer_out, size);
-    // printf("tmps expanded and filled\n");
-    for (int i = 0 ; i < (size+q)/16; i++){
+    q = (size % 16);
+    for (int i = 0 ; i < size/16; i++){
+        if (i == 0){
+            uint8_t ptext[16];
+            uint8_t ctext[16];
+            memcpy(ptext, *buffer_in+(i*16), 16);
+            Encrypt(ptext, ctext, key);
+            memcpy(*buffer_out+(i*16), ctext, 16);  
+        }
+        else {
+            uint8_t ptext[16];
+            uint8_t ctext[16];
+            memcpy(ptext, *buffer_in+(i*16), 16);
+            for (int i = 0; i<16 ; i++){
+                ptext[i] ^= ctext[i];
+            }
+            Encrypt(ptext, ctext, key);
+            memcpy(*buffer_out+(i*16), ctext, 16); 
+        }
+        // UNCOMMENT THIS IF YOU WANT ECB MODE. DELETE ABOVE IF,ELSE STATEMENT.
+        // uint8_t ptext[16];
+        // uint8_t ctext[16];
+        // memcpy(ptext, *buffer_in+(i*16), 16);
+        // Encrypt(ptext, ctext, key);
+        // memcpy(*buffer_out+(i*16), ctext, 16);
+    
+    }
+    if ( q != 0 ){
         uint8_t ptext[16];
         uint8_t ctext[16];
-        memcpy(ptext, tmp+(i*16), 16);
+        memset(ptext, 0, 16);
+        memset(ctext, 0, 16);
+        memcpy(ptext, *buffer_in+((size/16)*16), q);
         Encrypt(ptext, ctext, key);
-        memcpy(tmp2+(i*16), ctext, 16);
+        memcpy(*buffer_out+((size/16)*16), ctext, q);
     }
-    // printf("enc done\n");
-    // tmp = realloc(tmp, size);
-    // tmp2 = realloc(tmp2, size);
-    *buffer_in = tmp;
-    *buffer_out = tmp2;
-    // printf("memcopied into OG buffers\n");
     return 0;
 }
 
@@ -305,10 +317,14 @@ int MixColumns(){
     uint8_t tmpstate[4][4];
     memmove(tmpstate, state, sizeof(state));
     for (int i = 0 ; i<4 ;i++){
-        // tmpstate[0][i] = (gfMul(0x02,state[0][i])) ^ (gfMul(0x03, state[1][i])) ^ (state[2][i]) ^ (state[3][i]);
-        // tmpstate[1][i] = (state[0][i]) ^ (gfMul(0x02, state[1][i])) ^ (gfMul(0x03, state[2][i])) ^ (state[3][i]);
-        // tmpstate[2][i] = (state[0][i]) ^ (state[1][i]) ^ (gfMul(0x02, state[2][i])) ^ (gfMul(0x03, state[3][i]));
-        // tmpstate[3][i] = (gfMul(0x03, state[0][i])) ^ (state[1][i]) ^ (state[2][i]) ^ (gfMul(0x02, state[3][i]));
+        uint8_t s0 = xtimes(state[0][i]);
+        uint8_t s1 = xtimes(state[1][i]);
+        uint8_t s2 = xtimes(state[2][i]);
+        uint8_t s3 = xtimes(state[3][i]);
+        tmpstate[0][i] = (s0) ^ (s1^state[1][i]) ^ (state[2][i]) ^ (state[3][i]);
+        tmpstate[1][i] = (state[0][i]) ^ (s1) ^ (s2^state[2][i]) ^ (state[3][i]);
+        tmpstate[2][i] = (state[0][i]) ^ (state[1][i]) ^ (s2) ^ (s3^state[3][i]);
+        tmpstate[3][i] = (s0^state[0][i]) ^ (state[1][i]) ^ (state[2][i]) ^ (s3);
     }
     memmove(state, tmpstate, sizeof(tmpstate));
     return 0;
@@ -330,41 +346,13 @@ void InitSbox(){
     }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//uint8_t longblock[800];
-    // for (int i = 0 ; i < 800 ; i++){
-    //     longblock[i] = i % 10;
-    //     printf("%02x", longblock[i]);
-    // }
-    // printf ("\n");
-    // printf ("\n");
-    // printf ("\n");
-    // for (int i = 0 ; i < (sizeof(longblock))/16; i++){
-    //     uint8_t ptextBlock[16];
-    //     uint8_t ctextBlock[16];
-    //     memcpy(ptextBlock, longblock+(i*16), 16);
-    //     Cipher(ptextBlock, ctextBlock);
-    //     for (int j = 0 ; j < 16 ; j++){
-    //         printf("%02x", ptextBlock[j]);
-    //     }
-    //     printf("\nctext\n");
-    //     for (int j = 0 ; j < 16 ; j++){
-    //         printf("%02x", ctextBlock[j]);
-    //     }
-    // }
+uint8_t xtimes(uint8_t b){
+    if (((b >> 7) & 1u) == 0) {
+        b <<= 1;
+    }
+    else {
+        b <<= 1;
+        b ^= 0x1b;
+    }
+    return b;
+}
