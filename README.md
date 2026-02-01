@@ -1,4 +1,4 @@
-**Current project showcase: PNG image encryption with RSA, XOR, ChaCha and more**
+**Current project showcase: PNG image encryption with home-made RSA, ChaCha20, and AES-128**
 
 <img width="2048" height="1152" alt="cyber" src="https://github.com/user-attachments/assets/4938ade0-b6c3-4f1e-9d8b-7cb4aa8d3a1e" />
 
