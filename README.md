@@ -7,15 +7,16 @@
 
 
 
-## **Viewable at: [pngScrambler.c](https://github.com/sublime-elephant/projects/blob/main/C%20stuff/pngScrambler.c).**, which includes
-### [AES-128.c](https://github.com/sublime-elephant/projects/blob/main/C%20stuff/AES128.c)
-### [Salsa20.c](https://github.com/sublime-elephant/projects/blob/main/C%20stuff/chacha.c)
-### [RSA.c](https://github.com/sublime-elephant/projects/blob/main/C%20stuff/RSA.c)
+## **Viewable at: [pngScrambler.c](https://github.com/sublime-elephant/projects/blob/main/C%20stuff/pngScrambler.c).**, which includes:
+* ### [AES-128.c](https://github.com/sublime-elephant/projects/blob/main/C%20stuff/AES128.c) 
+   * Features my finite field and polynomial multiplication functions. Yes I calculated the S-box manually...
+* ### [Salsa20.c](https://github.com/sublime-elephant/projects/blob/main/C%20stuff/chacha.c) 
+* ### [RSA.c](https://github.com/sublime-elephant/projects/blob/main/C%20stuff/RSA.c)
 #### These C programs are encryption algorithms I've built for my PNG encryption program. They successfully pass given test vectors, so are specification-precise (FIPS, eSTREAM, PKCS#1).
 
 <br><br><br>
 
-
+## GitHub Overview
 * "C stuff" features my projects I've done in the C programming language. Everything you see is in-house C; I never use external libraries, with the exception of the WINAPI. Other than that every single aspect of a program is done by me and me alone.
   * **[LoadDLL.c](https://github.com/sublime-elephant/projects/blob/main/C%20stuff/LoadDLL.c)**, **[badDLL.c](https://github.com/sublime-elephant/projects/blob/main/C%20stuff/badDLL.c)**, **[computername.c](https://github.com/sublime-elephant/projects/blob/main/C%20stuff/computername.c)**, and **[hijacker.c](https://github.com/sublime-elephant/projects/blob/main/C%20stuff/hijacker.c)** are my forays into DLL Injection.
     
