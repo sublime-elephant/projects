@@ -1,4 +1,6 @@
-
+//running tips:
+//<IN X32 DEVELOPER COMMAND PROMPT> 
+//cl.exe main.c /I "C:\Users\Mike\Desktop\web projects\HardStuff\ImageScramble" /link "C:\Users\mike\Desktop\web projects\HardStuff\ImageScramble\zlib.lib" && .\main.exe 
 
 #include <stdint.h>
 #include <stdio.h>
@@ -8,6 +10,7 @@
 #include <string.h>
 #include <openssl\bn.h>
 #include "chacha.h"
+#include "AES128.h"
 
 typedef struct IHDR_data {
     uint32_t widthLE;
@@ -17,6 +20,9 @@ typedef struct IHDR_data {
     uint8_t compression;
     uint8_t filtermethod;
     uint8_t interlacemethod;
+    uint8_t bpp;
+    uLongf uncompressed_size;
+    uLongf compressed_size;
 } IHDR_data;
 
 typedef struct chunk_fields {
@@ -30,16 +36,27 @@ typedef struct RSA_keys{
     BIGNUM *e,*d,*n;
 } RSA_keys;
 
+int chunkParser(chunk_fields *s, IHDR_data *ihdr, FILE** fp, uint8_t** IDAT_chunk_data, int *total_IDAT_length);
+int defilter(IHDR_data *ihdr, uint8_t *bytes_in);
 
-uint8_t* recompress(uint8_t** encrypted_stream, uLongf uncompressed_size, uLongf *compressed_size);
-int defilter(IHDR_data *ihdr, int bpp, uint8_t *bytes_in);
-int XOR_encrypt(char* key, int keylength, uint8_t *bytes_in, uint8_t *bytes_out, int n, int bpp, IHDR_data* ihdr);
-int rebuild_png(chunk_fields *cf, int chunkcount, uint8_t *compressed_stream, uLongf compressed_size);
-int generate_alot(char* argv, chunk_fields *cf, int chunkcount, uint8_t *bytes_in, int n, int bpp, IHDR_data* ihdr, uLongf uncompressed_size);
-uint32_t CRC32(uint8_t* pbs, int len_bytes);
-int RSA_encrypt(RSA_keys *rsa_keys, uint8_t *bytes_in, uint8_t *bytes_out, int n);
+int XOR_encrypt(char* key, int keylength, uint8_t *bytes_in, uint8_t *bytes_out, IHDR_data* ihdr);
+
 int generate_RSA_keys(RSA_keys *out);
-int rebuild_png2(char* filename, FILE* f2, chunk_fields *cf, int chunkcount, uint8_t *compressed_stream, uLongf compressed_size);
+int RSA_encrypt(RSA_keys *rsa_keys, uint8_t *bytes_in, uint8_t *bytes_out, int n);
+
+uint8_t* recompress(uint8_t** encrypted_stream, IHDR_data* idhr);
+
+int rebuild_png(chunk_fields *cf, int chunkcount, uint8_t *compressed_stream, IHDR_data* ihdr);
+
+int rebuild_png2(char* filename, FILE* f2, chunk_fields *cf, int chunkcount, uint8_t *compressed_stream, IHDR_data* ihdr);
+
+uint32_t CRC32(uint8_t* pbs, int len_bytes);
+
+int generate_alot(char* argv, chunk_fields *cf, int chunkcount, uint8_t *bytes_in, IHDR_data* ihdr);
+
+
+
+
 
 
 
@@ -57,14 +74,8 @@ int main(int argc, char* argv[]){
     IHDR_data ihdr;
     int chunkcount = 0;
     int total_IDAT_length = 0;
-    uint8_t channel_amount = 0;
-    uint8_t bytes_channel = 0;
-    int bpp = 0;
-    uLongf uncompressed_size = 0;
-    uLong source_len = 0;
-    uint8_t filter_type = 0;
     RSA_keys rsa_keys;
-    uLongf compressed_size = 0;
+    
     
 
     srand(time(NULL));
@@ -92,34 +103,12 @@ int main(int argc, char* argv[]){
         }
         chunkcount += 1;
     }
-
-
-    switch (ihdr.colortype) {
-        case 0: channel_amount = 1; break;
-        case 2: channel_amount = 3; break;
-        case 3: channel_amount = 1; break;
-        case 4: channel_amount = 2; break;
-        case 6: channel_amount = 4; break;
-    }
-    bytes_channel = ihdr.bitdepth;
-    switch (ihdr.bitdepth) {
-        case 1: bytes_channel = 1; break;
-        case 2: bytes_channel = 1; break;
-        case 4: bytes_channel = 1; break;
-        case 8: bytes_channel = 1; break;
-        case 16: bytes_channel = 2; break;
-    }
-    bpp = channel_amount * bytes_channel;
-    uncompressed_size = (ihdr.heightLE)*bpp*(ihdr.widthLE)+(1*ihdr.heightLE);
-    source_len = total_IDAT_length;
-
-    filter_type = 0;
-    uncompressed_stream=malloc(uncompressed_size);
+    uncompressed_stream=malloc(ihdr.uncompressed_size);
     switch(uncompress(
         uncompressed_stream, 
-        &uncompressed_size,
+        &ihdr.uncompressed_size,
         IDAT_chunk_data, 
-        source_len))
+        total_IDAT_length))
         {
         case (Z_OK):
         printf("Uncompression okay\n");
@@ -150,52 +139,72 @@ int main(int argc, char* argv[]){
     
       
 
-    // int rowlen = ihdr.widthLE * bpp + 1;
-    // for (int y = 0; y < ihdr.heightLE; y++) {
-    //     uncompressed_stream[y * rowlen] = 0;
-    // }
 
-    if (defilter(&ihdr, bpp, uncompressed_stream) != 0){
+
+    if (defilter(&ihdr, uncompressed_stream) != 0){
         printf("something went wrong in defiltering\n");
         return 1;
     }
 
-
+    
 
     if (generate_RSA_keys(&rsa_keys) != 0){
         printf("something went wrong generating RSA keys\n");
         return 1;
     }
 
-    encrypted_stream = malloc(uncompressed_size);
+    encrypted_stream = malloc(ihdr.uncompressed_size);
+    uint8_t* uncompressed_stream_for_batch = malloc(ihdr.uncompressed_size);
+    memcpy(uncompressed_stream_for_batch, uncompressed_stream, ihdr.uncompressed_size);
 
+    // RSA_encrypt(&rsa_keys, uncompressed_stream, encrypted_stream, ihdr.uncompressed_size);
 
-
-    // RSA_encrypt(&rsa_keys, uncompressed_stream, encrypted_stream, uncompressed_size);
-
-    // if (XOR_encrypt(argv[2], strlen(argv[2]), uncompressed_stream, encrypted_stream, uncompressed_size, bpp, &ihdr) != 0) {
+    // if (XOR_encrypt(argv[2], strlen(argv[2]), uncompressed_stream, encrypted_stream, &ihdr) != 0) {
     //     printf("something went wrong encrypting with XOR\n");
     //     return 1;
     // }
-    printf("Trying to make salsa...\n");
-    if ((ChaCha(uncompressed_stream, encrypted_stream, uncompressed_size)) != 0){
-        printf("Failed to make yummy Salsa\n");
+
+    // printf("Trying to make salsa...\n");
+    // if ((ChaCha(uncompressed_stream, encrypted_stream, ihdr.uncompressed_size)) != 0){
+    //     printf("Failed to make yummy Salsa\n");
+    // }
+
+
+    uint8_t key[16] = {0x11,0x7e,0x15,0x16,0x28,0xae,0xd2,0xa6,0xab,0xf7,0x15,0x88,0x09,0xcf,0x4f,0x3c};
+    printf("\nTrying AES\n");
+    AES128(&uncompressed_stream, &encrypted_stream, ihdr.uncompressed_size, key);
+    printf("\n");
+    for (int i = 0 ; i < 32; i ++){
+        printf("%02x", uncompressed_stream[i]);
     }
-    compressed_stream = recompress(&encrypted_stream, uncompressed_size, &compressed_size);
+    printf("\n---\n");
+    for (int i = 0 ; i < 32; i ++){
+        printf("%02x", encrypted_stream[i]);
+    }
+    for (int i = 0 ; i < ihdr.uncompressed_size; i++){
+        if (i % (ihdr.bpp*ihdr.widthLE+1) == 0){
+            encrypted_stream[i] = 0x00; // re-do filter_byte
+        }
+    }
+    // generate_alot(argv[3], cf, chunkcount, uncompressed_stream_for_batch, &ihdr);
+
+    compressed_stream = recompress(&encrypted_stream, &ihdr);
 
     if (compressed_stream == NULL){
         printf("recompression failed\n");
         return 1;
     }
 
-    if (rebuild_png(cf, chunkcount, compressed_stream, compressed_size) != 0) {
+    if (rebuild_png(cf, chunkcount, compressed_stream, &ihdr) != 0) {
         printf("something went wrong rebuilding the png\n");
         return 1;
     };
 
-    generate_alot(argv[3], cf, chunkcount, uncompressed_stream, uncompressed_size, bpp, &ihdr, uncompressed_size);
 
-    printf("\nWidth: %d, h: %d\nuncompressed_size:%d\ncompressed_size:%d\nsource_len:%d\n", ihdr.widthLE, ihdr.heightLE, uncompressed_size, compressed_size, source_len);
+
+    free(uncompressed_stream);
+    free(compressed_stream);
+    free(encrypted_stream);
     fclose(f);
     free(cf);
     return 0;
@@ -203,6 +212,7 @@ int main(int argc, char* argv[]){
 
 
 int chunkParser(chunk_fields *s, IHDR_data *ihdr, FILE** fp, uint8_t** IDAT_chunk_data, int *total_IDAT_length) {
+
     //Signature check already read 8 bits, so we are ready to start reading chunks normally.
     if (fread(&s->chunk_length, 4, 1, *fp) < 1){
         printf("Couldn't read chunk length\n"); 
@@ -244,6 +254,26 @@ int chunkParser(chunk_fields *s, IHDR_data *ihdr, FILE** fp, uint8_t** IDAT_chun
         ihdr->compression = s->chunk_data[10];
         ihdr->filtermethod = s->chunk_data[11];
         ihdr->interlacemethod = s->chunk_data[12];
+        
+        uint8_t channel_amount=0;
+        switch (ihdr->colortype) {
+        case 0: channel_amount = 1; break;
+        case 2: channel_amount = 3; break;
+        case 3: channel_amount = 1; break;
+        case 4: channel_amount = 2; break;
+        case 6: channel_amount = 4; break;
+        }
+
+        uint8_t bytes_channel=0;
+        switch (ihdr->bitdepth) {
+            case 1: bytes_channel = 1; break;
+            case 2: bytes_channel = 1; break;
+            case 4: bytes_channel = 1; break;
+            case 8: bytes_channel = 1; break;
+            case 16: bytes_channel = 2; break;
+        }
+        ihdr->bpp = channel_amount * bytes_channel;
+        ihdr->uncompressed_size = ((ihdr->heightLE))*(ihdr->bpp)*((ihdr->widthLE))+((1)*(ihdr->heightLE));
 
     }
     // IDAT chunk processing
@@ -395,7 +425,6 @@ int RSA_encrypt(RSA_keys *rsa_keys, uint8_t *bytes_in, uint8_t *bytes_out, int n
     return 0;
 }
 
-
 uint32_t CRC32(uint8_t* pbs, int len_bytes){
     uint32_t polynomial = 0xedb88320u;
     /*
@@ -423,19 +452,35 @@ uint32_t CRC32(uint8_t* pbs, int len_bytes){
     return crc;
 }
 
-int XOR_encrypt(char* key, int keylength, uint8_t *bytes_in, uint8_t *bytes_out, int n, int bpp, IHDR_data* ihdr) {
-    for (int i = 0; i < n; i++){
-        if (i % (ihdr->widthLE*bpp+1) == 0 || i == 0){
-            bytes_out[i] = bytes_in[i];
+int XOR_encrypt(char* key, int keylength, uint8_t *bytes_in, uint8_t *bytes_out, IHDR_data* ihdr) {
+    for (int i = 0; i < ihdr->uncompressed_size; i++){
+        if(1==1) {
+             if (i % (ihdr->widthLE*ihdr->bpp+1) == 0){
+            bytes_out[i] = 0x00;
+            }
+            else {
+                if (bytes_in[i] > 0x96){
+                    bytes_out[i] = bytes_in[i];
+                }
+                else {
+                    bytes_out[i] = bytes_in[i]^(key[i%keylength]);
+                }
+            }
         }
         else {
-            bytes_out[i] = bytes_in[i]^(key[i%keylength]);
+            if (i % (ihdr->widthLE*ihdr->bpp+1) == 0 || i == 0){
+            bytes_out[i] = 0x00;
+            }
+            else {
+                bytes_out[i] = bytes_in[i];
+            }
         }
+       
     }
     return 0;
 }
 
-int generate_alot(char* argv, chunk_fields *cf, int chunkcount, uint8_t *bytes_in, int n, int bpp, IHDR_data* ihdr, uLongf uncompressed_size){
+int generate_alot(char* argv, chunk_fields *cf, int chunkcount, uint8_t *bytes_in, IHDR_data* ihdr){
     const char charset[] =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     "abcdefghijklmnopqrstuvwxyz"
@@ -444,43 +489,51 @@ int generate_alot(char* argv, chunk_fields *cf, int chunkcount, uint8_t *bytes_i
     int keysize = strtol(argv, NULL, 10);
     printf("keysize is %d\n", keysize);
     uint8_t* encrypted_stream_array[20];
-    uLongf compressed_size = 0;
     uint8_t *compressed_stream[20];
+    ihdr->compressed_size = 0;
     char* key_array[20];
     char* filenames[20];
     FILE* fparray[20];
 
     for (int i = 0; i < 20; i++){
-        encrypted_stream_array[i] = malloc(uncompressed_size);
+        encrypted_stream_array[i] = malloc(ihdr->uncompressed_size);
         key_array[i] = malloc(keysize+1);
+        printf("key: ");
         for (int j = 0; j<keysize; j++){
-            key_array[i][j] = charset[rand() % 62];
+            key_array[i][j] = rand() % 255;
+            key_array[i][keysize] = 0x00;
+            printf("%c", key_array[i][j]);
         }
-        key_array[i][keysize] = 0x00;
-        printf("keys: %s\n", key_array[i]);
+        printf("\n");
         filenames[i] = malloc(5+keysize+1);
         snprintf(filenames[i], 5+keysize+1, "%d.png", i);
         fparray[i] = fopen(filenames[i], "wb");
-        compressed_stream[i] = malloc(compressBound(uncompressed_size));
-        XOR_encrypt(key_array[i], keysize, bytes_in, encrypted_stream_array[i], uncompressed_size, bpp, ihdr);
-        compressed_stream[i] = recompress(&encrypted_stream_array[i], uncompressed_size, &compressed_size);
-        rebuild_png2(filenames[i], fparray[i], cf, chunkcount, compressed_stream[i], compressed_size);
+        compressed_stream[i] = malloc(compressBound(ihdr->uncompressed_size));
+        XOR_encrypt(key_array[i], keysize, bytes_in, encrypted_stream_array[i], ihdr);
+        compressed_stream[i] = recompress(&encrypted_stream_array[i], ihdr);
+        rebuild_png2(filenames[i], fparray[i], cf, chunkcount, compressed_stream[i], ihdr);
+        free(encrypted_stream_array[i]);
+        free(key_array[i]);
+        free(filenames[i]);
+        free(compressed_stream[i]);
+        fclose(fparray[i]);
     }
     return 0;
 }
 
-int defilter(IHDR_data *ihdr, int bpp, uint8_t *bytes_in) {
+int defilter(IHDR_data *ihdr, uint8_t *bytes_in) {
+    printf("width: %d height: %d", ihdr->widthLE, ihdr->heightLE);
     int lpsl = 0;
     int apal = 0;
     int lpal = 0;
     int filter_type = 0;
     for (int i = 0; i < ihdr->heightLE; i++){
-        for (int k = 0; k < (ihdr->widthLE*bpp)+1; k++){
+        for (int k = 0; k < (ihdr->widthLE*ihdr->bpp)+1; k++){
 
-            int i_cp = (i*(ihdr->widthLE)*bpp)+k+(1*i);
-            int i_lpsl = i_cp-(bpp);
-            int i_apal = i_cp-(bpp*(ihdr->widthLE)+1);
-            int i_lpal = i_cp-(bpp*(ihdr->widthLE)+1)-bpp;
+            int i_cp = (i*(ihdr->widthLE)*(ihdr->bpp))+k+(1*i);
+            int i_lpsl = i_cp-(ihdr->bpp);
+            int i_apal = i_cp-(ihdr->bpp*(ihdr->widthLE)+1);
+            int i_lpal = i_cp-(ihdr->bpp*(ihdr->widthLE)+1)-ihdr->bpp;
 
 
             int current_pixel = bytes_in[i_cp];
@@ -488,11 +541,12 @@ int defilter(IHDR_data *ihdr, int bpp, uint8_t *bytes_in) {
             if (k==0){
                 filter_type = current_pixel;
                 // printf("%02x", current_pixel);
+                bytes_in[i_cp] = 0; //needed.
             }
 
             else {
 
-                if (i_lpsl > 0 && k>bpp){
+                if (k>ihdr->bpp){
                     lpsl = bytes_in[i_lpsl];
                 }
                 else {
@@ -505,7 +559,7 @@ int defilter(IHDR_data *ihdr, int bpp, uint8_t *bytes_in) {
                 else {
                     apal = 0;
                 }
-                if (i_lpal > 0 && i > 0 && k>bpp){
+                if (i > 0 && k>ihdr->bpp){
                     lpal = bytes_in[i_lpal];
                 }
                 else {
@@ -555,15 +609,15 @@ int defilter(IHDR_data *ihdr, int bpp, uint8_t *bytes_in) {
 }
 
 
-uint8_t* recompress(uint8_t **encrypted_stream, uLongf uncompressed_size, uLongf *compressed_size) {
-    *compressed_size = compressBound(uncompressed_size);
-    uint8_t *compressed_stream = malloc(*compressed_size);
+uint8_t* recompress(uint8_t **encrypted_stream, IHDR_data* ihdr) {
+    ihdr->compressed_size = compressBound(ihdr->uncompressed_size);
+    uint8_t *compressed_stream = malloc(ihdr->compressed_size);
 
     switch(compress(
         compressed_stream, 
-        compressed_size,
+        &ihdr->compressed_size,
         *encrypted_stream, 
-        uncompressed_size))
+        ihdr->uncompressed_size))
         {
         case (Z_OK):
         printf("Compression okay\n");
@@ -584,8 +638,7 @@ uint8_t* recompress(uint8_t **encrypted_stream, uLongf uncompressed_size, uLongf
     return compressed_stream;
 }
 
-int rebuild_png(chunk_fields *cf, int chunkcount, uint8_t *compressed_stream, uLongf compressed_size) {
-
+int rebuild_png(chunk_fields *cf, int chunkcount, uint8_t *compressed_stream, IHDR_data* ihdr) {
     FILE* f2 = fopen("out.png", "wb");
     if (f2 == NULL) {
         printf("Couldn't open file \n");
@@ -600,7 +653,7 @@ int rebuild_png(chunk_fields *cf, int chunkcount, uint8_t *compressed_stream, uL
             continue;
         }
         if ((memcmp(&cf[i].chunk_type, "IDAT", 4) == 0) && a == 0){
-            uint32_t datalen = compressed_size;
+            uint32_t datalen = ihdr->compressed_size;
             datalen = _byteswap_ulong(datalen);
             fwrite(&datalen, 1, 4, f2);
             datalen = _byteswap_ulong(datalen);
@@ -613,6 +666,7 @@ int rebuild_png(chunk_fields *cf, int chunkcount, uint8_t *compressed_stream, uL
             crc = _byteswap_ulong(crc);
             fwrite(&crc, 1, 4, f2);
             a = 1;
+            free(chunk_type_and_data);
         }
 
         else {
@@ -628,13 +682,14 @@ int rebuild_png(chunk_fields *cf, int chunkcount, uint8_t *compressed_stream, uL
             uint32_t crc = CRC32(chunk_type_and_data, datalen+4);
             crc = _byteswap_ulong(crc);
             fwrite(&crc, 1, 4, f2);
+            free(chunk_type_and_data);
         }
     }
     fclose(f2);
     return 0;
 }
 
-int rebuild_png2(char* filename, FILE* f2, chunk_fields *cf, int chunkcount, uint8_t *compressed_stream, uLongf compressed_size) {
+int rebuild_png2(char* filename, FILE* f2, chunk_fields *cf, int chunkcount, uint8_t *compressed_stream, IHDR_data* ihdr) {
     f2 = fopen(filename, "wb");
     if (f2 == NULL) {
         printf("Couldn't open file \n");
@@ -651,7 +706,7 @@ int rebuild_png2(char* filename, FILE* f2, chunk_fields *cf, int chunkcount, uin
             continue;
         }
         if ((memcmp(&cf[i].chunk_type, "IDAT", 4) == 0) && a == 0){
-            uint32_t datalen = compressed_size;
+            uint32_t datalen = ihdr->compressed_size;
             datalen = _byteswap_ulong(datalen);
             fwrite(&datalen, 1, 4, f2);
             datalen = _byteswap_ulong(datalen);
@@ -664,6 +719,7 @@ int rebuild_png2(char* filename, FILE* f2, chunk_fields *cf, int chunkcount, uin
             crc = _byteswap_ulong(crc);
             fwrite(&crc, 1, 4, f2);
             a = 1;
+            free(chunk_type_and_data);
         }
 
         else {
@@ -679,9 +735,9 @@ int rebuild_png2(char* filename, FILE* f2, chunk_fields *cf, int chunkcount, uin
             uint32_t crc = CRC32(chunk_type_and_data, datalen+4);
             crc = _byteswap_ulong(crc);
             fwrite(&crc, 1, 4, f2);
+            free(chunk_type_and_data);
         }
     }
     fclose(f2);
     return 0;
-
 }
