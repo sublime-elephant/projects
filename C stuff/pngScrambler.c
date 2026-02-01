@@ -1,6 +1,4 @@
-//running tips:
-//<IN X32 DEVELOPER COMMAND PROMPT> 
-//cl.exe main.c /I "C:\Users\Mike\Desktop\web projects\HardStuff\ImageScramble" /link "C:\Users\mike\Desktop\web projects\HardStuff\ImageScramble\zlib.lib" && .\main.exe 
+
 
 #include <stdint.h>
 #include <stdio.h>
@@ -741,3 +739,4 @@ int rebuild_png2(char* filename, FILE* f2, chunk_fields *cf, int chunkcount, uin
     fclose(f2);
     return 0;
 }
+
