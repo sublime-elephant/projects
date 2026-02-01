@@ -7,7 +7,11 @@
 
 
 
-## **Viewable at: [pngScrambler.c](https://github.com/sublime-elephant/projects/blob/main/C%20stuff/pngScrambler.c).**
+## **Viewable at: [pngScrambler.c](https://github.com/sublime-elephant/projects/blob/main/C%20stuff/pngScrambler.c).**, which includes
+### [AES-128.c](https://github.com/sublime-elephant/projects/blob/main/C%20stuff/AES128.c)
+### [Salsa20.c](https://github.com/sublime-elephant/projects/blob/main/C%20stuff/chacha.c)
+### [RSA.c](https://github.com/sublime-elephant/projects/blob/main/C%20stuff/RSA.c)
+#### These C programs are encryption algorithms I've built for my PNG encryption program. They successfully pass given test vectors, so are specification-precise (FIPS, eSTREAM, PKCS#1).
 
 <br><br><br>
 
