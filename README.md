@@ -14,7 +14,7 @@
 * ### [RSA.c](https://github.com/sublime-elephant/projects/blob/main/C%20stuff/RSA.c)
 * ### [Kuznyechik.c](https://github.com/sublime-elephant/projects/blob/main/C%20stuff/Kuznyechik.c)
 * ### [SM4.c](https://github.com/sublime-elephant/projects/blob/main/C%20stuff/SM4.c)
-#### These C programs are encryption algorithms I've built for my PNG encryption program. They successfully pass given test vectors, so are specification-precise (FIPS, eSTREAM, PKCS#1).
+#### These C programs are encryption algorithms I've built for my PNG encryption program. They successfully pass given test vectors, so are specification-precise (FIPS, eSTREAM, PKCS#1, etc).
 
 <br><br><br>
 
