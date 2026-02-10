@@ -1,5 +1,3 @@
-
-
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,6 +7,8 @@
 #include <openssl\bn.h>
 #include "chacha.h"
 #include "AES128.h"
+#include "Kuznyechik.h"
+#include "SM4.h"
 
 typedef struct IHDR_data {
     uint32_t widthLE;
@@ -146,16 +146,15 @@ int main(int argc, char* argv[]){
 
     
 
-    if (generate_RSA_keys(&rsa_keys) != 0){
-        printf("something went wrong generating RSA keys\n");
-        return 1;
-    }
+    // if (generate_RSA_keys(&rsa_keys) != 0){
+    //     printf("something went wrong generating RSA keys\n");
+    //     return 1;
+    // }
 
     encrypted_stream = malloc(ihdr.uncompressed_size);
     uint8_t* uncompressed_stream_for_batch = malloc(ihdr.uncompressed_size);
     memcpy(uncompressed_stream_for_batch, uncompressed_stream, ihdr.uncompressed_size);
-
-    // RSA_encrypt(&rsa_keys, uncompressed_stream, encrypted_stream, ihdr.uncompressed_size);
+// RSA_encrypt(&rsa_keys, uncompressed_stream, encrypted_stream, ihdr.uncompressed_size);
 
     // if (XOR_encrypt(argv[2], strlen(argv[2]), uncompressed_stream, encrypted_stream, &ihdr) != 0) {
     //     printf("something went wrong encrypting with XOR\n");
@@ -167,10 +166,45 @@ int main(int argc, char* argv[]){
     //     printf("Failed to make yummy Salsa\n");
     // }
 
+    
+    int selection = atoi(argv[2]);
+    switch(selection){ 
+        case 0:
+        uint8_t key[16] = {0x11,0x7e,0x15,0x16,0x28,0xae,0xd2,0xa6,0xab,0xf7,0x15,0x88,0x09,0xcf,0x4f,0x3c};
+        //XOR encrypt
+        printf("Picked XOR\n");
+        if (XOR_encrypt(key, strlen(key), uncompressed_stream, encrypted_stream, &ihdr) != 0) {
+            printf("Something went wrong with XOR\n");
+            return 1;
+        }
+        break;
+        case 1:
+        printf("Picked AES\n");
+        //AES encrypt
+        uint8_t key1[16] = {0x11,0x7e,0x15,0x16,0x28,0xae,0xd2,0xa6,0xab,0xf7,0x15,0x88,0x09,0xcf,0x4f,0x3c};
+        AES128(&uncompressed_stream, &encrypted_stream, ihdr.uncompressed_size, key1);
+        break;
+        case 2:
+        printf("Picked SALSA\n");
+        //no key in here, its in ChaCha atm. WIP.
+        if ((ChaCha(uncompressed_stream, encrypted_stream, ihdr.uncompressed_size)) != 0){
+            printf("Failed to make yummy Salsa\n");
+        }
+        break;
+        case 3:
+        printf("Picked Kuznyechik\n");
+        uint8_t key3[32] = {0x11,0x7e,0x15,0x16,0x28,0xae,0xd2,0xa6,0xab,0xf7,0x15,0x88,0x09,0xcf,0x4f,0x3c,0x11,0x7e,0x15,0x16,0x28,0xae,0xd2,0xa6,0xab,0xf7,0x15,0x88,0x09,0xcf,0x4f,0x3c};
+        KuznyechikEncrypt(uncompressed_stream, encrypted_stream, key3, ihdr.uncompressed_size);
+        break;
 
-    uint8_t key[16] = {0x11,0x7e,0x15,0x16,0x28,0xae,0xd2,0xa6,0xab,0xf7,0x15,0x88,0x09,0xcf,0x4f,0x3c};
-    printf("\nTrying AES\n");
-    AES128(&uncompressed_stream, &encrypted_stream, ihdr.uncompressed_size, key);
+        case 4:
+        printf("Picked SM4\n");
+        uint32_t key4[4] = {0x01234567, 0x89abcde, 0xf0123456, 0x789abcde};
+        SM4Encrypt(uncompressed_stream, encrypted_stream, key4, ihdr.uncompressed_size);
+        break;
+
+    }
+    
     printf("\n");
     for (int i = 0 ; i < 32; i ++){
         printf("%02x", uncompressed_stream[i]);
@@ -739,4 +773,3 @@ int rebuild_png2(char* filename, FILE* f2, chunk_fields *cf, int chunkcount, uin
     fclose(f2);
     return 0;
 }
-
