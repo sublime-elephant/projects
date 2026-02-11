@@ -1,6 +1,6 @@
 ## Current project showcase: <br>
 # PNG image encryption with home-made modern encryption algorithms from around the world:
-## AES-128, RSA, ChaCha20, Kuznyechik (Russia), and SM-4 (China).
+## AES-128, RSA, ChaCha20, Kuznyechik (Russia), and SM-4 (China), Camellia (Japan).
 
 <img width="2048" height="1152" alt="cyber" src="https://github.com/user-attachments/assets/4938ade0-b6c3-4f1e-9d8b-7cb4aa8d3a1e" />
 
@@ -16,6 +16,7 @@
 * ### [RSA.c](https://github.com/sublime-elephant/projects/blob/main/C%20stuff/RSA.c)
 * ### [Kuznyechik.c](https://github.com/sublime-elephant/projects/blob/main/C%20stuff/Kuznyechik.c)
 * ### [SM4.c](https://github.com/sublime-elephant/projects/blob/main/C%20stuff/SM4.c)
+* ### [Camellia.c](https://github.com/sublime-elephant/projects/blob/main/C%20stuff/Camellia.c)
 #### These C programs are encryption algorithms I've built for my PNG encryption program. They successfully pass given test vectors, so are specification-precise (FIPS, eSTREAM, PKCS#1, etc).
 
 <br><br><br>
