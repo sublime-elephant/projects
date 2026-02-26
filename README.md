@@ -1,4 +1,4 @@
-# No LLMs used in the making of these projects except when seeking clarifications in technical specifications like RFCs.
+# No LLMs used in the making of these projects.
 
 ## Current project showcase: <br>
 ### PNG image encryption with home-made modern encryption algorithms from around the world:
