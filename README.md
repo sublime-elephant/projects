@@ -1,6 +1,6 @@
 # No LLMs used in the making of these projects.
 
-## Current project showcase: <br>
+## Project showcase: <br>
 ### PNG image encryption with home-made modern encryption algorithms from around the world:
 ### AES-128, RSA, ChaCha20, Kuznyechik (Russia), and SM-4 (China), Camellia (Japan).
 
